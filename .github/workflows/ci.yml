@@ -1,0 +1,47 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install xmllint
+        run: sudo apt-get update && sudo apt-get install -y libxml2-utils
+
+      - name: Validate rule set is well-formed XML
+        run: xmllint --noout cowrie_rules.xml
+
+      - name: Validate sample evidence is well-formed JSON
+        run: python3 -c "import json; json.load(open('evidence/sample-alerts.json'))"
+
+      - name: Every rule ID referenced in the sample evidence exists in the ruleset
+        run: |
+          python3 -c "
+          import json, re
+          xml = open('cowrie_rules.xml').read()
+          defined = set(re.findall(r'rule id=\"(\d+)\"', xml))
+          alerts = json.load(open('evidence/sample-alerts.json'))
+          used = {a['rule']['id'] for a in alerts}
+          missing = used - defined
+          assert not missing, f'Sample evidence references undefined rule IDs: {missing}'
+          print(f'OK: {sorted(used)} all defined in ruleset')
+          "
+
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Gitleaks scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
