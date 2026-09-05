@@ -1,5 +1,7 @@
 **wazuh-cowrie-ruleset**
 
+[![CI](https://github.com/danishrafiquekhan/wazuh-cowrie-ruleset/actions/workflows/ci.yml/badge.svg)](https://github.com/danishrafiquekhan/wazuh-cowrie-ruleset/actions/workflows/ci.yml)
+
 A Wazuh custom rule set for [Cowrie](https://github.com/cowrie/cowrie), the SSH/Telnet honeypot. Wazuh ships no built-in Cowrie decoder — this fills that gap using Wazuh's generic JSON decoder plus four rules that branch on Cowrie's own `eventid` field.
 
 **Why this exists**
